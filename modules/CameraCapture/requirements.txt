@@ -1,0 +1,10 @@
+argparse
+azure-iot-device
+azure-mgmt-iothub
+numpy
+opencv-python
+tflite-support>=0.4.0
+#requests
+asyncio
+#trollius
+tornado==4.5.3
