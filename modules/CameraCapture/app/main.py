@@ -152,8 +152,8 @@ def main(
     '''
     Capture a camera feed, send it to processing and forward outputs to EdgeHub
 
-    :param int videoPath: camera device path such as /dev/video0 or a test video file such as /TestAssets/myvideo.avi. /dev/video0 by default ("0")
-    :param str imageProcessingEndpoint: service endpoint to send the frames to for processing. Example: "http://face-detect-service:8080". Leave empty when no external processing is needed (Default). Optional.
+    :param str model: model file. Example: "efficientdet_lite0.tflite".
+    :param int cameraId: camera device path such as /dev/video0 or a test video file such as /TestAssets/myvideo.avi. /dev/video0 by default ("0")
     '''
     try:
         print("\nPython %s\n" % sys.version)
