@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Main script to run the object detection routine."""
-import argparse
+import os
 import sys
 import time
 
@@ -22,7 +22,7 @@ from tflite_support.task import processor
 from tflite_support.task import vision
 
 
-def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
+def runDetect(model: str, camera_id: int, width: int, height: int, num_threads: int,
         enable_edgetpu: bool) -> None:
   """Continuously run inference on images acquired from the camera.
 
@@ -45,11 +45,6 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
   cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
   # Visualization parameters
-  row_size = 20  # pixels
-  left_margin = 24  # pixels
-  text_color = (0, 0, 255)  # red
-  font_size = 1
-  font_thickness = 1
   fps_avg_frame_count = 10
 
   # Initialize the object detection model
@@ -103,52 +98,73 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       break
 
   cap.release()
- 
 
-def main():
-  parser = argparse.ArgumentParser(
-      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-  parser.add_argument(
-      'VERBOSE',
-      help='Verbose debug.',
-      required=False,
-      default='False')
-  parser.add_argument(
-      'MODEL',
-      help='Path of the object detection model.',
-      required=False,
-      default='efficientdet_lite0.tflite')
-  parser.add_argument(
-      'CAMERA_ID', help='Id of camera.', required=False, type=int, default=0)
-  parser.add_argument(
-      'FRAME_WIDTH',
-      help='Width of frame to capture from camera.',
-      required=False,
-      type=int,
-      default=640)
-  parser.add_argument(
-      'FRAME_HEIGHT',
-      help='Height of frame to capture from camera.',
-      required=False,
-      type=int,
-      default=480)
-  parser.add_argument(
-      'NUM_THREADS',
-      help='Number of CPU threads to run the model.',
-      required=False,
-      type=int,
-      default=4)
-  parser.add_argument(
-      'ENABLE_EDGETPU',
-      help='Whether to run the model on EdgeTPU.',
-      action='store_true',
-      required=False,
-      default=False)
-  args = parser.parse_args()
+def main(
+    debugy = False,
+    model = "",
+    cameraId = 0,
+    frameWidth = 0,
+    frameHeight = 0,
+    numThreads = 4,
+    enableEdgeTPU = False,
+    showVideo = False,
+    verbose = False,
+    bypassIot = False
+):
+    '''
+    Capture a camera feed, send it to processing and forward outputs to EdgeHub
 
-  run(args.model, int(args.cameraId), args.frameWidth, args.frameHeight,
-      int(args.numThreads), bool(args.enableEdgeTPU))
+    :param int videoPath: camera device path such as /dev/video0 or a test video file such as /TestAssets/myvideo.avi. /dev/video0 by default ("0")
+    :param str imageProcessingEndpoint: service endpoint to send the frames to for processing. Example: "http://face-detect-service:8080". Leave empty when no external processing is needed (Default). Optional.
+    '''
+    try:
+        print("\nPython %s\n" % sys.version)
+        print("Camera Capture Azure IoT Edge Module. Press Ctrl-C to exit.")
+        #if debugy:
+        #    print("Wait for debugger!!!")
+        #    import debugpy
+        #    debugpy.listen(5678)
+        #    debugpy.wait_for_client()  # blocks execution until client is attached
+        try:
+            if not bypassIot:
+                global hubManager
+                hubManager = HubManager(
+                    10000, verbose)
+        except Exception as iothub_error:
+            print("Unexpected error %s from IoTHub" % iothub_error)
+            return
+        runDetect(model,cameraId,frameWidth, frameHeight, numThreads,enableEdgeTPU)
+
+#        with CameraCapture(videoPath, imageProcessingEndpoint, imageProcessingParams, showVideo, verbose, loopVideo, convertToGray, resizeWidth, resizeHeight, annotate, send_to_Hub_callback, bypassIot) as cameraCapture:
+#            cameraCapture.start()
+    except KeyboardInterrupt:
+        print("Camera capture module stopped")
+
+def __convertStringToBool(env):
+    if env in ['True', 'TRUE', '1', 'y', 'YES', 'Y', 'Yes']:
+        return True
+    elif env in ['False', 'FALSE', '0', 'n', 'NO', 'N', 'No']:
+        return False
+    else:
+        raise ValueError('Could not convert string to bool.')
 
 
 if __name__ == '__main__':
-  main()
+  try:
+    DEBUGY = __convertStringToBool(os.getenv('DEBUG', 'False'))
+    MODEL = os.getenv('MODEL', "efficientdet_lite0.tflite")
+    CAMERA_ID = int(os.getenv('CAMERA_ID', 0))
+    FRAME_WIDTH = int(os.getenv('FRAME_WIDTH', 640))
+    FRAME_HEIGHT = int(os.getenv('FRAME_HEIGHT', 480))
+    NUM_THREADS = int(os.getenv('NUM_THREADS', 4))
+    ENABLE_TPU = __convertStringToBool(os.getenv('ENABLE_TPU', 'False'))
+    SHOW_VIDEO = __convertStringToBool(os.getenv('SHOW_VIDEO', 'False'))
+    VERBOSE = __convertStringToBool(os.getenv('VERBOSE', 'False'))
+    BYPASS_IOT = __convertStringToBool(os.getenv('BYPASS_IOT', 'True'))
+
+  except ValueError as error:
+    print(error)
+    sys.exit(1)
+
+main(DEBUGY, MODEL, CAMERA_ID, FRAME_WIDTH, FRAME_HEIGHT, NUM_THREADS, ENABLE_TPU,
+      SHOW_VIDEO, VERBOSE, BYPASS_IOT)
