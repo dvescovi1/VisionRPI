@@ -25,11 +25,12 @@ from azure.iot.device import IoTHubModuleClient, Message
 
 import CameraCapture
 from CameraCapture import CameraCapture
+import VideoStream
+from VideoStream import VideoStream
 
 
 # global counters
 SEND_CALLBACKS = 0
-
 
 def send_to_Hub_callback(strMessage):
     message = Message(bytearray(strMessage, 'utf8'))
@@ -62,6 +63,13 @@ class HubManager(object):
         global SEND_CALLBACKS
         SEND_CALLBACKS += 1
 
+def __IsInt(string):
+    try: 
+        int(string)
+        return True
+    except ValueError:
+        return False
+
 
 def runDetect(model: str, videoPath: str, width: int, height: int, num_threads: int,
         enable_edgetpu: bool) -> None:
@@ -79,11 +87,17 @@ def runDetect(model: str, videoPath: str, width: int, height: int, num_threads: 
   # Variables to calculate FPS
   counter, fps = 0, 0
   start_time = time.time()
-
+  vs = None
+  
+  if (__IsInt(videoPath)):
+    vs = VideoStream(int(videoPath), width, height).start()
+    time.sleep(1.0)#needed to load at least one frame into the VideoStream class
+  else:
+    capture = cv2.VideoCapture(videoPath)
   # Start capturing video input from the camera
-  cap = cv2.VideoCapture(int(videoPath))
-  cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-  cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+  #cap = cv2.VideoCapture(int(videoPath))
+  #cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+  #cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
   # Visualization parameters
   fps_avg_frame_count = 10
@@ -98,12 +112,14 @@ def runDetect(model: str, videoPath: str, width: int, height: int, num_threads: 
   detector = vision.ObjectDetector.create_from_options(options)
 
   # Continuously capture images from the camera and run inference
-  while cap.isOpened():
-    success, image = cap.read()
-    if not success:
-      sys.exit(
-          'ERROR: Unable to read from webcam. Please verify your webcam settings.'
-      )
+#  while vs.isOpened():
+  while True:
+    image = vs.read()
+#    success, image = vs.read()
+#    if not success:
+#      sys.exit(
+#          'ERROR: Unable to read from webcam. Please verify your webcam settings.'
+#      )
 
     counter += 1
     image = cv2.flip(image, 1)
@@ -138,7 +154,9 @@ def runDetect(model: str, videoPath: str, width: int, height: int, num_threads: 
     if cv2.waitKey(1) == 27:
       break
 
-  cap.release()
+#  if (__IsInt(videoPath)):
+#    cameraCapture.imageServer.close()
+#    cap.release()
 
 def main(
     debugy = False,

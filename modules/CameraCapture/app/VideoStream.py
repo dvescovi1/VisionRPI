@@ -1,8 +1,5 @@
-# To make python 2 and python 3 compatible code
-#from __future__ import absolute_import
 
 from threading import Thread
-#import sys
 
 import cv2
 from cv2 import cv2
@@ -10,12 +7,16 @@ from cv2 import cv2
 
 from queue import Queue
 
-# This class reads all the video frames in a separate thread and always has the keeps only the latest frame in its queue to be grabbed by another thread
+# This class reads all the video frames in a separate thread
+# and always has the keeps only the latest frame in its queue
+# to be grabbed by another thread
 
 
 class VideoStream(object):
-    def __init__(self, path, queueSize=3):
+    def __init__(self, path, width, height, queueSize=3):
         self.stream = cv2.VideoCapture(path)
+        self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+        self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
         self.stopped = False
         self.Q = Queue(maxsize=queueSize)
 
