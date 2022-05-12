@@ -4,14 +4,7 @@ from __future__ import absolute_import
 
 #Imports
 import sys
-#if sys.version_info[0] < 3:#e.g python version <3
 import cv2
-#else:
-#    import cv
-#    from cv2 import cv2
-# pylint: disable=E1101
-# pylint: disable=E0401
-# Disabling linting that is not supported by Pylint for C extensions such as OpenCV. See issue https://github.com/PyCQA/pylint/issues/1955 
 import numpy
 import requests
 import json
@@ -19,8 +12,6 @@ import time
 
 import VideoStream
 from VideoStream import VideoStream
-import AnnotationParser
-from AnnotationParser import AnnotationParser
 import ImageServer
 from ImageServer import ImageServer
 
@@ -35,18 +26,18 @@ class CameraCapture(object):
 
     def __init__(
             self,
-            videoPath="0",
-            imageProcessingEndpoint = "",
-            imageProcessingParams = "", 
-            showVideo = False, 
+            model = "",
+            videoPath = "",
+            frameWidth = 0,
+            frameHeight = 0,
+            numThreads = 0,
+            enableEdgeTPU = False,
+            showVideo = False,
             verbose = False,
-            loopVideo = True,
-            convertToGray = False,
-            resizeWidth = 0,
-            resizeHeight = 0,
-            annotate = False,
-            sendToHubCallback = None,
-            bypassIot = False):
+            bypassIot = False,
+            sendToHubCallback = None
+            ):
+        self.model = model
         self.videoPath = videoPath
         if self.__IsInt(videoPath):
             #case of a usb camera (usually mounted at /dev/video* where * is an int)
@@ -54,41 +45,28 @@ class CameraCapture(object):
         else:
             #case of a video file
             self.isWebcam = False
-        self.imageProcessingEndpoint = imageProcessingEndpoint
-        if imageProcessingParams == "":
-            self.imageProcessingParams = "" 
-        else:
-            self.imageProcessingParams = json.loads(imageProcessingParams)
+        self.frameWidth = frameWidth
+        self.frameHeight = frameHeight
+        self.numThreads = numThreads
+        self.enableEdgeTPU = enableEdgeTPU
         self.showVideo = showVideo
         self.verbose = verbose
-        self.loopVideo = loopVideo
-        self.convertToGray = convertToGray
-        self.resizeWidth = resizeWidth
-        self.resizeHeight = resizeHeight
-        self.annotate = (self.imageProcessingEndpoint != "") and self.showVideo & annotate
-        self.nbOfPreprocessingSteps = 0
-        self.autoRotate = False
         if bypassIot:
             self.sendToHubCallback = None
         else:
             self.sendToHubCallback = sendToHubCallback
         self.vs = None
 
-        if self.convertToGray:
-            self.nbOfPreprocessingSteps +=1
-        if self.resizeWidth != 0 or self.resizeHeight != 0:
-            self.nbOfPreprocessingSteps +=1
         if self.verbose:
             print("Initialising the camera capture with the following parameters: ")
+            print("   - Model file: " + self.model)
             print("   - Video path: " + self.videoPath)
-            print("   - Image processing endpoint: " + self.imageProcessingEndpoint)
-            print("   - Image processing params: " + json.dumps(self.imageProcessingParams))
+            print("   - Frame width: " + str(self.frameWidth))
+            print("   - Frame height: " + str(self.frameHeight))
+            print("   - Num Threads: " + str(self.numThreads))
+            print("   - Enable TPU: " + str(self.enableEdgeTPU))
             print("   - Show video: " + str(self.showVideo))
-            print("   - Loop video: " + str(self.loopVideo))
-            print("   - Convert to gray: " + str(self.convertToGray))
-            print("   - Resize width: " + str(self.resizeWidth))
-            print("   - Resize height: " + str(self.resizeHeight))
-            print("   - Annotate: " + str(self.annotate))
+            print("   - Verbose: " + str(self.verbose))
             print("   - Send processing results to hub: " + str(self.sendToHubCallback is not None))
             print()
         
@@ -97,28 +75,9 @@ class CameraCapture(object):
             self.imageServer = ImageServer(5012, self)
             self.imageServer.start()
 
-    def __annotate(self, frame, response):
-        AnnotationParserInstance = AnnotationParser()
-        #TODO: Make the choice of the service configurable
-        listOfRectanglesToDisplay = AnnotationParserInstance.getCV2RectanglesFromProcessingService1(response)
-        for rectangle in listOfRectanglesToDisplay:
-            cv2.rectangle(frame, (rectangle(0), rectangle(1)), (rectangle(2), rectangle(3)), (0,0,255),4)
-        return
 
-    def __sendFrameForProcessing(self, frame):
-        headers = {'Content-Type': 'application/octet-stream'}
-        try:
-            response = requests.post(self.imageProcessingEndpoint, headers = headers, params = self.imageProcessingParams, data = frame)
-        except Exception as e:
-            print('__sendFrameForProcessing Excpetion -' + str(e))
-            return "[]"
 
-        if self.verbose:
-            try:
-                print("Response from external processing service: (" + str(response.status_code) + ") " + json.dumps(response.json()))
-            except Exception:
-                print("Response from external processing service (status code): " + str(response.status_code))
-        return json.dumps(response.json())
+
 
     def __displayTimeDifferenceInMs(self, endTime, startTime):
         return str(int((endTime-startTime) * 1000)) + " ms"
