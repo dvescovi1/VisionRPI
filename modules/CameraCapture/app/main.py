@@ -186,10 +186,11 @@ def main(
             print("Unexpected error %s from IoTHub" % iothub_error)
             return
 
+        with CameraCapture(videoPath,showVideo,verbose) as cameraCapture:
+            cameraCapture.start()
+
         runDetect(model,videoPath,frameWidth, frameHeight, numThreads,enableEdgeTPU)
 
-#        with CameraCapture(model,videoPath,frameWidth, frameHeight, numThreads,enableEdgeTPU,showVideo,verbose,bypassIot,send_to_Hub_callback) as cameraCapture:
-#            cameraCapture.start()
     except KeyboardInterrupt:
         print("Camera capture module stopped")
 

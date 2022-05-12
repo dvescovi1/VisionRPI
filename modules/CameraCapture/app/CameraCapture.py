@@ -26,18 +26,10 @@ class CameraCapture(object):
 
     def __init__(
             self,
-            model = "",
             videoPath = "",
-            frameWidth = 0,
-            frameHeight = 0,
-            numThreads = 0,
-            enableEdgeTPU = False,
             showVideo = False,
             verbose = False,
-            bypassIot = False,
-            sendToHubCallback = None
             ):
-        self.model = model
         self.videoPath = videoPath
         if self.__IsInt(videoPath):
             #case of a usb camera (usually mounted at /dev/video* where * is an int)
@@ -45,16 +37,8 @@ class CameraCapture(object):
         else:
             #case of a video file
             self.isWebcam = False
-        self.frameWidth = frameWidth
-        self.frameHeight = frameHeight
-        self.numThreads = numThreads
-        self.enableEdgeTPU = enableEdgeTPU
         self.showVideo = showVideo
         self.verbose = verbose
-        if bypassIot:
-            self.sendToHubCallback = None
-        else:
-            self.sendToHubCallback = sendToHubCallback
         self.vs = None
 
         self.displayFrame = None
@@ -68,12 +52,12 @@ class CameraCapture(object):
     def __enter__(self):
         if self.isWebcam:
             #The VideoStream class always gives us the latest frame from the webcam. It uses another thread to read the frames.
-            self.vs = VideoStream(int(self.videoPath)).start()
+#            self.vs = VideoStream(int(self.videoPath)).start()
             time.sleep(1.0)#needed to load at least one frame into the VideoStream class
             #self.capture = cv2.VideoCapture(int(self.videoPath))
-        else:
+#        else:
             #In the case of a video file, we want to analyze all the frames of the video thus are not using VideoStream class
-            self.capture = cv2.VideoCapture(self.videoPath)
+#            self.capture = cv2.VideoCapture(self.videoPath)
         return self
 
     def get_display_frame(self):
@@ -82,7 +66,7 @@ class CameraCapture(object):
     def start(self):
         frameCounter = 0
         perfForOneFrameInMs = None
-        while True:
+        while False:
             if self.showVideo or self.verbose:
                 startOverall = time.time()
             if self.verbose:
