@@ -81,7 +81,7 @@ def runDetect(model: str, videoPath: str, width: int, height: int, num_threads: 
   start_time = time.time()
 
   # Start capturing video input from the camera
-  cap = cv2.VideoCapture(videoPath)
+  cap = cv2.VideoCapture(int(videoPath))
   cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
   cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
@@ -97,7 +97,6 @@ def runDetect(model: str, videoPath: str, width: int, height: int, num_threads: 
       base_options=base_options, detection_options=detection_options)
   detector = vision.ObjectDetector.create_from_options(options)
 
- 
   # Continuously capture images from the camera and run inference
   while cap.isOpened():
     success, image = cap.read()
@@ -176,10 +175,10 @@ def main(
             print("Unexpected error %s from IoTHub" % iothub_error)
             return
 
-#        runDetect(model,cameraId,frameWidth, frameHeight, numThreads,enableEdgeTPU)
+        runDetect(model,videoPath,frameWidth, frameHeight, numThreads,enableEdgeTPU)
 
-        with CameraCapture(model,videoPath,frameWidth, frameHeight, numThreads,enableEdgeTPU,showVideo,verbose,bypassIot,send_to_Hub_callback) as cameraCapture:
-            cameraCapture.start()
+#        with CameraCapture(model,videoPath,frameWidth, frameHeight, numThreads,enableEdgeTPU,showVideo,verbose,bypassIot,send_to_Hub_callback) as cameraCapture:
+#            cameraCapture.start()
     except KeyboardInterrupt:
         print("Camera capture module stopped")
 
@@ -201,8 +200,8 @@ if __name__ == '__main__':
     FRAME_HEIGHT = int(os.getenv('FRAME_HEIGHT', 480))
     NUM_THREADS = int(os.getenv('NUM_THREADS', 4))
     ENABLE_TPU = __convertStringToBool(os.getenv('ENABLE_TPU', 'False'))
-    SHOW_VIDEO = __convertStringToBool(os.getenv('SHOW_VIDEO', 'True'))
-    VERBOSE = __convertStringToBool(os.getenv('VERBOSE', 'True'))
+    SHOW_VIDEO = __convertStringToBool(os.getenv('SHOW_VIDEO', 'False'))
+    VERBOSE = __convertStringToBool(os.getenv('VERBOSE', 'False'))
     BYPASS_IOT = __convertStringToBool(os.getenv('BYPASS_IOT', 'True'))
 
   except ValueError as error:
