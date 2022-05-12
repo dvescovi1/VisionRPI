@@ -57,27 +57,10 @@ class CameraCapture(object):
             self.sendToHubCallback = sendToHubCallback
         self.vs = None
 
-        if self.verbose:
-            print("Initialising the camera capture with the following parameters: ")
-            print("   - Model file: " + self.model)
-            print("   - Video path: " + self.videoPath)
-            print("   - Frame width: " + str(self.frameWidth))
-            print("   - Frame height: " + str(self.frameHeight))
-            print("   - Num Threads: " + str(self.numThreads))
-            print("   - Enable TPU: " + str(self.enableEdgeTPU))
-            print("   - Show video: " + str(self.showVideo))
-            print("   - Verbose: " + str(self.verbose))
-            print("   - Send processing results to hub: " + str(self.sendToHubCallback is not None))
-            print()
-        
         self.displayFrame = None
         if self.showVideo:
             self.imageServer = ImageServer(5012, self)
             self.imageServer.start()
-
-
-
-
 
     def __displayTimeDifferenceInMs(self, endTime, startTime):
         return str(int((endTime-startTime) * 1000)) + " ms"

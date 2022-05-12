@@ -152,6 +152,11 @@ def main(
     verbose = False,
     bypassIot = False
 ):
+    #if debugy:
+    #    print("Wait for debugger!!!")
+    #    import debugpy
+    #    debugpy.listen(5678)
+    #    debugpy.wait_for_client()  # blocks execution until client is attached
     '''
     Capture a camera feed, send it to processing and forward outputs to EdgeHub
 
@@ -161,11 +166,17 @@ def main(
     try:
         print("\nPython %s\n" % sys.version)
         print("Camera Capture Azure IoT Edge Module. Press Ctrl-C to exit.")
-        #if debugy:
-        #    print("Wait for debugger!!!")
-        #    import debugpy
-        #    debugpy.listen(5678)
-        #    debugpy.wait_for_client()  # blocks execution until client is attached
+        print("Initialising the camera capture with the following parameters: ")
+        print("   - Model file: " + model)
+        print("   - Video path: " + videoPath)
+        print("   - Frame width: " + str(frameWidth))
+        print("   - Frame height: " + str(frameHeight))
+        print("   - Num Threads: " + str(numThreads))
+        print("   - Enable TPU: " + str(enableEdgeTPU))
+        print("   - Show video: " + str(showVideo))
+        print("   - Verbose: " + str(verbose))
+        print("   - Send processing results to hub: " + str(bypassIot))
+        print()
         try:
             if not bypassIot:
                 global hubManager
