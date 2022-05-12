@@ -1,7 +1,3 @@
-#To make python 2 and python 3 compatible code
-from __future__ import division
-from __future__ import absolute_import
-
 #Imports
 import sys
 import cv2
@@ -12,29 +8,11 @@ from ImageServer import ImageServer
 
 class CameraCapture(object):
 
-    def __IsInt(self,string):
-        try: 
-            int(string)
-            return True
-        except ValueError:
-            return False
-
     def __init__(
             self,
-            videoPath = "",
-            showVideo = False,
-            verbose = False,
+            showVideo = False
             ):
-        self.videoPath = videoPath
-        if self.__IsInt(videoPath):
-            #case of a usb camera (usually mounted at /dev/video* where * is an int)
-            self.isWebcam = True
-        else:
-            #case of a video file
-            self.isWebcam = False
         self.showVideo = showVideo
-        self.verbose = verbose
-        self.vs = None
 
         self.displayFrame = None
         if self.showVideo:
@@ -45,18 +23,12 @@ class CameraCapture(object):
         return self
 
     def get_display_frame(self):
-
         return self.displayFrame
 
     def start(self):
         frameCounter = 0
         perfForOneFrameInMs = None
         while False:
-            if self.showVideo or self.verbose:
-                startOverall = time.time()
-            if self.verbose:
-                startCapture = time.time()
-
             frameCounter +=1
             if self.isWebcam:
                 frame = self.vs.read()
@@ -96,10 +68,6 @@ class CameraCapture(object):
                 preprocessedFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                 preprocessedFrame = cv2.resize(preprocessedFrame, (self.resizeWidth,self.resizeHeight))
             
-            if self.verbose:
-                print("Time to pre-process a frame: " + self.__displayTimeDifferenceInMs(time.time(), startPreProcessing))
-                startEncodingForProcessing = time.time()
-
             #Process externally
             if self.imageProcessingEndpoint != "":
 
@@ -139,9 +107,6 @@ class CameraCapture(object):
                     else:
                         if self.verbose and (perfForOneFrameInMs is not None):
                             cv2.putText(preprocessedFrame, "FPS " + str(round(1000/perfForOneFrameInMs, 2)),(10, 35),cv2.FONT_HERSHEY_SIMPLEX,1.0,(0,0,255), 2)
-                        if self.annotate:
-                            #TODO: fix bug with annotate function
-                            self.__annotate(preprocessedFrame, response)
                         self.displayFrame = cv2.imencode('.jpg', preprocessedFrame)[1].tobytes()
                 except Exception as e:
                     print("Could not display the video to a web browser.") 
@@ -165,8 +130,8 @@ class CameraCapture(object):
                 print("Total time for one frame: " + self.__displayTimeDifferenceInMs(time.time(), startOverall))
 
     def __exit__(self, exception_type, exception_value, traceback):
-        if not self.isWebcam:
-            self.capture.release()
+#        if not self.isWebcam:
+#            self.capture.release()
         if self.showVideo:
             self.imageServer.close()
             cv2.destroyAllWindows()

@@ -72,7 +72,7 @@ def __IsInt(string):
 
 
 def runDetect(model: str, videoPath: str, width: int, height: int, num_threads: int,
-        enable_edgetpu: bool) -> None:
+        enable_edgetpu: bool, showVideo: bool) -> None:
   """Continuously run inference on images acquired from the camera.
 
   Args:
@@ -88,16 +88,17 @@ def runDetect(model: str, videoPath: str, width: int, height: int, num_threads: 
   counter, fps = 0, 0
   start_time = time.time()
   vs = None
-  
+  isWebcam = False
+
   if (__IsInt(videoPath)):
+    isWebcam = True
     vs = VideoStream(int(videoPath), width, height).start()
     time.sleep(1.0)#needed to load at least one frame into the VideoStream class
   else:
-    capture = cv2.VideoCapture(videoPath)
+    cap = cv2.VideoCapture(videoPath)
   # Start capturing video input from the camera
-  #cap = cv2.VideoCapture(int(videoPath))
-  #cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-  #cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
   # Visualization parameters
   fps_avg_frame_count = 10
@@ -112,14 +113,20 @@ def runDetect(model: str, videoPath: str, width: int, height: int, num_threads: 
   detector = vision.ObjectDetector.create_from_options(options)
 
   # Continuously capture images from the camera and run inference
-#  while vs.isOpened():
   while True:
-    image = vs.read()
-#    success, image = vs.read()
-#    if not success:
-#      sys.exit(
-#          'ERROR: Unable to read from webcam. Please verify your webcam settings.'
-#      )
+    image = None
+    if isWebcam:
+        image = vs.read()
+    else:
+        image = cap.read()[1]
+    if (image is None):
+        if (not isWebcam):
+            cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+            counter = 0
+            continue
+        sys.exit(
+          'ERROR: Unable to read from webcam. Please verify your webcam settings.'
+      )
 
     counter += 1
     image = cv2.flip(image, 1)
@@ -150,6 +157,7 @@ def runDetect(model: str, videoPath: str, width: int, height: int, num_threads: 
     # Show the FPS
     fps_text = 'FPS = {:.1f}'.format(fps)
     print(fps_text)
+    print(counter)
     # Stop the program if the ESC key is pressed.
     if cv2.waitKey(1) == 27:
       break
@@ -204,10 +212,10 @@ def main(
             print("Unexpected error %s from IoTHub" % iothub_error)
             return
 
-        with CameraCapture(videoPath,showVideo,verbose) as cameraCapture:
+        with CameraCapture(showVideo) as cameraCapture:
             cameraCapture.start()
 
-        runDetect(model,videoPath,frameWidth, frameHeight, numThreads,enableEdgeTPU)
+        runDetect(model,videoPath,frameWidth, frameHeight, numThreads,enableEdgeTPU, showVideo)
 
     except KeyboardInterrupt:
         print("Camera capture module stopped")
@@ -225,7 +233,8 @@ if __name__ == '__main__':
   try:
     DEBUGY = __convertStringToBool(os.getenv('DEBUG', 'False'))
     MODEL = os.getenv('MODEL', "efficientdet_lite0.tflite")
-    VIDEO_PATH = os.getenv('VIDEO_PATH', "0")
+    VIDEO_PATH = os.getenv('VIDEO_PATH', "./AppleAndBanana.mp4")
+#    VIDEO_PATH = os.getenv('VIDEO_PATH', "0")
     FRAME_WIDTH = int(os.getenv('FRAME_WIDTH', 640))
     FRAME_HEIGHT = int(os.getenv('FRAME_HEIGHT', 480))
     NUM_THREADS = int(os.getenv('NUM_THREADS', 4))
