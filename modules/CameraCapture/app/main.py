@@ -23,6 +23,9 @@ from tflite_support.task import vision
 
 from azure.iot.device import IoTHubModuleClient, Message
 
+import CameraCapture
+from CameraCapture import CameraCapture
+
 
 # global counters
 SEND_CALLBACKS = 0
@@ -60,13 +63,13 @@ class HubManager(object):
         SEND_CALLBACKS += 1
 
 
-def runDetect(model: str, camera_id: int, width: int, height: int, num_threads: int,
+def runDetect(model: str, videoPath: str, width: int, height: int, num_threads: int,
         enable_edgetpu: bool) -> None:
   """Continuously run inference on images acquired from the camera.
 
   Args:
     model: Name of the TFLite object detection model.
-    camera_id: The camera id to be passed to OpenCV.
+    videoPath: The camera id/path to be passed to OpenCV.
     width: The width of the frame captured from the camera.
     height: The height of the frame captured from the camera.
     num_threads: The number of CPU threads to run the model.
@@ -78,7 +81,7 @@ def runDetect(model: str, camera_id: int, width: int, height: int, num_threads: 
   start_time = time.time()
 
   # Start capturing video input from the camera
-  cap = cv2.VideoCapture(camera_id)
+  cap = cv2.VideoCapture(videoPath)
   cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
   cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
@@ -94,6 +97,7 @@ def runDetect(model: str, camera_id: int, width: int, height: int, num_threads: 
       base_options=base_options, detection_options=detection_options)
   detector = vision.ObjectDetector.create_from_options(options)
 
+ 
   # Continuously capture images from the camera and run inference
   while cap.isOpened():
     success, image = cap.read()
@@ -140,10 +144,10 @@ def runDetect(model: str, camera_id: int, width: int, height: int, num_threads: 
 def main(
     debugy = False,
     model = "",
-    cameraId = 0,
+    videoPath="0",
     frameWidth = 0,
     frameHeight = 0,
-    numThreads = 4,
+    numThreads = 0,
     enableEdgeTPU = False,
     showVideo = False,
     verbose = False,
@@ -171,10 +175,11 @@ def main(
         except Exception as iothub_error:
             print("Unexpected error %s from IoTHub" % iothub_error)
             return
-        runDetect(model,cameraId,frameWidth, frameHeight, numThreads,enableEdgeTPU)
 
-#        with CameraCapture(videoPath, imageProcessingEndpoint, imageProcessingParams, showVideo, verbose, loopVideo, convertToGray, resizeWidth, resizeHeight, annotate, send_to_Hub_callback, bypassIot) as cameraCapture:
-#            cameraCapture.start()
+#        runDetect(model,cameraId,frameWidth, frameHeight, numThreads,enableEdgeTPU)
+
+        with CameraCapture(model,videoPath,frameWidth, frameHeight, numThreads,enableEdgeTPU,showVideo,verbose,bypassIot,send_to_Hub_callback) as cameraCapture:
+            cameraCapture.start()
     except KeyboardInterrupt:
         print("Camera capture module stopped")
 
@@ -191,18 +196,18 @@ if __name__ == '__main__':
   try:
     DEBUGY = __convertStringToBool(os.getenv('DEBUG', 'False'))
     MODEL = os.getenv('MODEL', "efficientdet_lite0.tflite")
-    CAMERA_ID = int(os.getenv('CAMERA_ID', 0))
+    VIDEO_PATH = os.getenv('VIDEO_PATH', "0")
     FRAME_WIDTH = int(os.getenv('FRAME_WIDTH', 640))
     FRAME_HEIGHT = int(os.getenv('FRAME_HEIGHT', 480))
     NUM_THREADS = int(os.getenv('NUM_THREADS', 4))
     ENABLE_TPU = __convertStringToBool(os.getenv('ENABLE_TPU', 'False'))
-    SHOW_VIDEO = __convertStringToBool(os.getenv('SHOW_VIDEO', 'False'))
-    VERBOSE = __convertStringToBool(os.getenv('VERBOSE', 'False'))
+    SHOW_VIDEO = __convertStringToBool(os.getenv('SHOW_VIDEO', 'True'))
+    VERBOSE = __convertStringToBool(os.getenv('VERBOSE', 'True'))
     BYPASS_IOT = __convertStringToBool(os.getenv('BYPASS_IOT', 'True'))
 
   except ValueError as error:
     print(error)
     sys.exit(1)
 
-main(DEBUGY, MODEL, CAMERA_ID, FRAME_WIDTH, FRAME_HEIGHT, NUM_THREADS, ENABLE_TPU,
+main(DEBUGY, MODEL, VIDEO_PATH, FRAME_WIDTH, FRAME_HEIGHT, NUM_THREADS, ENABLE_TPU,
       SHOW_VIDEO, VERBOSE, BYPASS_IOT)
