@@ -1,5 +1,4 @@
 #Imports
-import sys
 import cv2
 import time
 
@@ -24,6 +23,9 @@ class CameraCapture(object):
 
     def get_display_frame(self):
         return self.displayFrame
+
+    def put_display_frame(self, displayFrame):
+        self.displayFrame = displayFrame
 
     def start(self):
         frameCounter = 0
