@@ -90,6 +90,9 @@ def runDetect(model: str, videoPath: str, width: int, height: int, num_threads: 
   vs = None
   isWebcam = False
 
+  with CameraCapture(showVideo) as cameraCapture:
+    cameraCapture.start()
+
   if (__IsInt(videoPath)):
     isWebcam = True
     vs = VideoStream(int(videoPath), width, height).start()
@@ -127,7 +130,8 @@ def runDetect(model: str, videoPath: str, width: int, height: int, num_threads: 
         sys.exit(
           'ERROR: Unable to read from webcam. Please verify your webcam settings.'
       )
-
+    cameraCapture.put_display_frame(image)
+    
     counter += 1
     image = cv2.flip(image, 1)
 
@@ -211,9 +215,6 @@ def main(
         except Exception as iothub_error:
             print("Unexpected error %s from IoTHub" % iothub_error)
             return
-
-        with CameraCapture(showVideo) as cameraCapture:
-            cameraCapture.start()
 
         runDetect(model,videoPath,frameWidth, frameHeight, numThreads,enableEdgeTPU, showVideo)
 
