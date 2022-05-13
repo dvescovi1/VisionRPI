@@ -83,12 +83,16 @@
             "status": "running",
             "restartPolicy": "always",
             "env": {
-              "VIDEO_PATH": { "value": "./AppleAndBanana.mp4" },
-              "IMAGE_PROCESSING_ENDPOINT": { "value": "http://image-classifier-service:80/image" },
-              "VERBOSE": { "value": "True" },
-              "RESIZE_WIDTH": { "value": "256" },
-              "RESIZE_HEIGHT": { "value": "256" },
-              "SHOW_VIDEO": { "value": "True" }
+              "DEBUG": { "value": "False" },
+              "MODEL": { "value": "efficientdet_lite0.tflite" },
+              "VIDEO_PATH": { "value": "0" },
+              "FRAME_WIDTH": { "value": "640" },
+              "FRAME_HEIGHT": { "value": "480" },
+              "NUM_THREADS": { "value": "4" },
+              "ENABLE_TPU": { "value": "False" },
+              "SHOW_VIDEO": { "value": "True"},
+              "VERBOSE": { "value": "True"},
+              "BYPASS_IOT": { "value": "False"}
             },
             "settings": {
               "image": "${MODULES.CameraCapture.debug}",
