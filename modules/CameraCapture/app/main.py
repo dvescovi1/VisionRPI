@@ -130,13 +130,14 @@ def runDetect(model: str, videoPath: str, width: int, height: int, num_threads: 
         sys.exit(
           'ERROR: Unable to read from webcam. Please verify your webcam settings.'
       )
-    cameraCapture.put_display_frame(image)
     
     counter += 1
     image = cv2.flip(image, 1)
 
     # Convert the image from BGR to RGB as required by the TFLite model.
     rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+    cameraCapture.put_display_frame(image)
 
     # Create a TensorImage object from the RGB image.
     input_tensor = vision.TensorImage.create_from_array(rgb_image)
@@ -240,7 +241,7 @@ if __name__ == '__main__':
     FRAME_HEIGHT = int(os.getenv('FRAME_HEIGHT', 480))
     NUM_THREADS = int(os.getenv('NUM_THREADS', 4))
     ENABLE_TPU = __convertStringToBool(os.getenv('ENABLE_TPU', 'False'))
-    SHOW_VIDEO = __convertStringToBool(os.getenv('SHOW_VIDEO', 'False'))
+    SHOW_VIDEO = __convertStringToBool(os.getenv('SHOW_VIDEO', 'True'))
     VERBOSE = __convertStringToBool(os.getenv('VERBOSE', 'False'))
     BYPASS_IOT = __convertStringToBool(os.getenv('BYPASS_IOT', 'True'))
 

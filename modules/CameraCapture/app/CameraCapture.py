@@ -1,4 +1,6 @@
 #Imports
+from typing import List
+
 import cv2
 import time
 
@@ -24,77 +26,14 @@ class CameraCapture(object):
     def get_display_frame(self):
         return self.displayFrame
 
-    def put_display_frame(self, displayFrame):
-        self.displayFrame = displayFrame
+    def put_display_frame(self, image):
+        self.displayFrame = image
 
     def start(self):
         frameCounter = 0
         perfForOneFrameInMs = None
         while False:
             frameCounter +=1
-            if self.isWebcam:
-                frame = self.vs.read()
-            else:
-                frame = self.capture.read()[1]
-                if frameCounter == 1:
-                    if self.capture.get(cv2.CAP_PROP_FRAME_WIDTH) < self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT):
-                        self.autoRotate = True
-                if self.autoRotate:
-                    frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE) #The counterclockwise is random...It coudl well be clockwise. Is there a way to auto detect it?
-            if self.verbose:
-                if frameCounter == 1:
-                    if not self.isWebcam:
-                        print("Original frame size: " + str(int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))) + "x" + str(int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))))
-                        print("Frame rate (FPS): " + str(int(self.capture.get(cv2.CAP_PROP_FPS))))
-                print("Frame number: " + str(frameCounter))
-                print("Time to capture (+ straighten up) a frame: " + self.__displayTimeDifferenceInMs(time.time(), startCapture))
-                startPreProcessing = time.time()
-            
-            #Loop video
-            if not self.isWebcam:             
-                if frameCounter == self.capture.get(cv2.CAP_PROP_FRAME_COUNT):
-                    if self.loopVideo: 
-                        frameCounter = 0
-                        self.capture.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                    else:
-                        break
-
-            #Pre-process locally
-            if self.nbOfPreprocessingSteps == 1 and self.convertToGray:
-                preprocessedFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            
-            if self.nbOfPreprocessingSteps == 1 and (self.resizeWidth != 0 or self.resizeHeight != 0):
-                preprocessedFrame = cv2.resize(frame, (self.resizeWidth, self.resizeHeight))
-
-            if self.nbOfPreprocessingSteps > 1:
-                preprocessedFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                preprocessedFrame = cv2.resize(preprocessedFrame, (self.resizeWidth,self.resizeHeight))
-            
-            #Process externally
-            if self.imageProcessingEndpoint != "":
-
-                #Encode frame to send over HTTP
-                if self.nbOfPreprocessingSteps == 0:
-                    encodedFrame = cv2.imencode(".jpg", frame)[1].tostring()
-                else:
-                    encodedFrame = cv2.imencode(".jpg", preprocessedFrame)[1].tostring()
-
-                if self.verbose:
-                    print("Time to encode a frame for processing: " + self.__displayTimeDifferenceInMs(time.time(), startEncodingForProcessing))
-                    startProcessingExternally = time.time()
-
-                #Send over HTTP for processing
-                response = self.__sendFrameForProcessing(encodedFrame)
-                if self.verbose:
-                    print("Time to process frame externally: " + self.__displayTimeDifferenceInMs(time.time(), startProcessingExternally))
-                    startSendingToEdgeHub = time.time()
-
-                #forwarding outcome of external processing to the EdgeHub
-                if response != "[]" and self.sendToHubCallback is not None:
-                    self.sendToHubCallback(response)
-                    if self.verbose:
-                        print("Time to message from processing service to edgeHub: " + self.__displayTimeDifferenceInMs(time.time(), startSendingToEdgeHub))
-                        startDisplaying = time.time()
 
             #Display frames
             if self.showVideo:
@@ -132,8 +71,6 @@ class CameraCapture(object):
                 print("Total time for one frame: " + self.__displayTimeDifferenceInMs(time.time(), startOverall))
 
     def __exit__(self, exception_type, exception_value, traceback):
-#        if not self.isWebcam:
-#            self.capture.release()
         if self.showVideo:
             self.imageServer.close()
             cv2.destroyAllWindows()
