@@ -2,7 +2,6 @@
 from typing import List
 
 import cv2
-import time
 
 import numpy as np
 from tflite_support.task import processor
@@ -59,4 +58,3 @@ class CameraCapture(object):
     def __exit__(self, exception_type, exception_value, traceback):
         if self.showVideo:
             self.imageServer.close()
-            cv2.destroyAllWindows()
