@@ -137,8 +137,6 @@ def runDetect(model: str, videoPath: str, width: int, height: int, num_threads: 
     # Convert the image from BGR to RGB as required by the TFLite model.
     rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-    cameraCapture.put_display_frame(image)
-
     # Create a TensorImage object from the RGB image.
     input_tensor = vision.TensorImage.create_from_array(rgb_image)
 
@@ -152,6 +150,7 @@ def runDetect(model: str, videoPath: str, width: int, height: int, num_threads: 
       result_text = class_name + ' (' + str(probability) + ')'
       print(result_text)
 
+    cameraCapture.put_display_frame(image, detection_result)
 
     # Calculate the FPS
     if counter % fps_avg_frame_count == 0:
