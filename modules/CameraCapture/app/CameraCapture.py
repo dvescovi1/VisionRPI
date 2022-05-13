@@ -54,7 +54,7 @@ class CameraCapture(object):
                                 _MARGIN + _ROW_SIZE + bbox.origin_y)
                 cv2.putText(image, result_text, text_location, cv2.FONT_HERSHEY_PLAIN,
                             _FONT_SIZE, _TEXT_COLOR, _FONT_THICKNESS)
-            self.displayFrame = image
+            self.displayFrame =  cv2.imencode('.jpg', image)[1].tobytes()
 
     def start(self):
         frameCounter = 0
