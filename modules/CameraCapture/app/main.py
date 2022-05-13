@@ -72,7 +72,7 @@ def __IsInt(string):
 
 
 def runDetect(model: str, videoPath: str, width: int, height: int, num_threads: int,
-        enable_edgetpu: bool, showVideo: bool) -> None:
+        enable_edgetpu: bool, showVideo: bool, bypassIot: bool) -> None:
   """Continuously run inference on images acquired from the camera.
 
   Args:
@@ -142,13 +142,16 @@ def runDetect(model: str, videoPath: str, width: int, height: int, num_threads: 
 
     # Run object detection estimation using the model.
     detection_result = detector.detect(input_tensor)
-
+    
     for detection in detection_result.detections:
       category = detection.classes[0]
       class_name = category.class_name
       probability = round(category.score, 2)
       result_text = class_name + ' (' + str(probability) + ')'
       print(result_text)
+      if (not bypassIot):
+          telemeter_text = '{' + '"' + 'probability' + '": ' + str(probability) + ', "tagName": "' + class_name + '"}'
+          send_to_Hub_callback(telemeter_text)
 
     cameraCapture.put_display_frame(image, detection_result)
 
@@ -166,8 +169,8 @@ def runDetect(model: str, videoPath: str, width: int, height: int, num_threads: 
     if cv2.waitKey(1) == 27:
       break
 
-#  if (__IsInt(videoPath)):
-#    cameraCapture.imageServer.close()
+#    if (__IsInt(videoPath)):
+#      cameraCapture.imageServer.close()
 #    cap.release()
 
 def main(
@@ -216,7 +219,7 @@ def main(
             print("Unexpected error %s from IoTHub" % iothub_error)
             return
 
-        runDetect(model,videoPath,frameWidth, frameHeight, numThreads,enableEdgeTPU, showVideo)
+        runDetect(model,videoPath,frameWidth, frameHeight, numThreads,enableEdgeTPU, showVideo, bypassIot)
 
     except KeyboardInterrupt:
         print("Camera capture module stopped")
@@ -234,7 +237,7 @@ if __name__ == '__main__':
   try:
     DEBUGY = __convertStringToBool(os.getenv('DEBUG', 'False'))
     MODEL = os.getenv('MODEL', "efficientdet_lite0.tflite")
-    VIDEO_PATH = os.getenv('VIDEO_PATH', "./AppleAndBanana.mp4")
+    VIDEO_PATH = os.getenv('VIDEO_PATH', "../test/AppleAndBanana.mp4")
 #    VIDEO_PATH = os.getenv('VIDEO_PATH', "0")
     FRAME_WIDTH = int(os.getenv('FRAME_WIDTH', 640))
     FRAME_HEIGHT = int(os.getenv('FRAME_HEIGHT', 480))
