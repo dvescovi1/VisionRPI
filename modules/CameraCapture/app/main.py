@@ -91,7 +91,7 @@ def runDetect(model: str, videoPath: str, width: int, height: int, num_threads: 
   isWebcam = False
 
   with CameraCapture(showVideo) as cameraCapture:
-    cameraCapture.start()
+    cameraCapture
 
   if (__IsInt(videoPath)):
     isWebcam = True
