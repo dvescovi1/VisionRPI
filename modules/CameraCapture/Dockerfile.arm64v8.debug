@@ -14,7 +14,9 @@ apt-get -y install --no-install-recommends \
     # high def image processing
     libilmbase-dev libopenexr-dev \
     # audio for tensorflow lite support
-    libportaudio2 libusb-1.0-0-dev
+    libportaudio2 libusb-1.0-0-dev \
+    # needed for camera
+    v4l-utils
 
 WORKDIR /app
 
