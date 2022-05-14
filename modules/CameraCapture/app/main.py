@@ -214,7 +214,7 @@ def main(
             if not bypassIot:
                 global hubManager
                 hubManager = HubManager(
-                    10000, verbose)
+                    100, verbose)
         except Exception as iothub_error:
             print("Unexpected error %s from IoTHub" % iothub_error)
             return

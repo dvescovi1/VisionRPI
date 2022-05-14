@@ -57,26 +57,6 @@
           }
         },
         "modules": {
-          "display-io": {
-            "version": "1.0.0",
-            "type": "docker",
-            "status": "running",
-            "restartPolicy": "always",
-            "env": {
-              "GPIO_A": { "value": "20" },
-              "GPIO_B": { "value": "21" },
-              "THRESHOLD": { "value": ".6" },
-              "TELEMETER_ALL": { "value": "false"}
-            },
-            "settings": {
-              "image": "${MODULES.DisplayIO.debug}",
-              "createOptions": {
-                "HostConfig": {
-                  "Privileged": true
-                }
-              }
-            }
-          },
           "camera-capture": {
             "version": "1.0.0",
             "type": "docker",
@@ -85,22 +65,30 @@
             "env": {
               "DEBUG": { "value": "False" },
               "MODEL": { "value": "efficientdet_lite0.tflite" },
-              "VIDEO_PATH": { "value": "AppleAndBanana.mp4" },
+              "VIDEO_PATH": { "value": "0" },
               "FRAME_WIDTH": { "value": "640" },
               "FRAME_HEIGHT": { "value": "480" },
               "NUM_THREADS": { "value": "4" },
               "ENABLE_TPU": { "value": "False" },
               "SHOW_VIDEO": { "value": "True"},
               "VERBOSE": { "value": "True"},
-              "BYPASS_IOT": { "value": "False"}
+              "BYPASS_IOT": { "value": "True"}
             },
             "settings": {
-              "image": "${MODULES.CameraCapture.debug}",
+              "image": "${MODULES.CameraCapture}",
               "createOptions": {
                 "HostConfig": {
                   "PortBindings": {
                     "5012/tcp": [ { "HostPort": "5012" } ]
-                  }
+                  },
+                  "Binds": [ "/dev/video0:/dev/video0" ],
+                  "Devices": [
+                    {
+                      "PathOnHost": "/dev/video0",
+                      "PathInContainer": "/dev/video0",
+                      "CgroupPermissions": "mrw"
+                    }
+                  ]
                 }
               }
             }
@@ -114,7 +102,7 @@
         "routes": {
           "DisplayIOToIoTHub": "FROM /messages/modules/display-io/outputs/* INTO $upstream",
           "CameraCaptureToDisplayIO": "FROM /messages/modules/camera-capture/outputs/output1 INTO BrokeredEndpoint(\"/modules/display-io/inputs/input1\")"
-         },
+        },
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200
         }
