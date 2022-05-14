@@ -57,26 +57,6 @@
           }
         },
         "modules": {
-          "display-io": {
-            "version": "1.0.0",
-            "type": "docker",
-            "status": "running",
-            "restartPolicy": "always",
-            "env": {
-              "GPIO_A": { "value": "20" },
-              "GPIO_B": { "value": "21" },
-              "THRESHOLD": { "value": ".6" },
-              "TELEMETER_ALL": { "value": "false"}
-            },
-            "settings": {
-              "image": "${MODULES.DisplayIO}",
-              "createOptions": {
-                "HostConfig": {
-                  "Privileged": true
-                }
-              }
-            }
-          },
           "camera-capture": {
             "version": "1.0.0",
             "type": "docker",
@@ -84,9 +64,9 @@
             "restartPolicy": "always",
             "env": {
               "DEBUG": { "value": "False" },
-              "MODEL": { "value": "0" },
-              "MAX_OBJECTS": { "value": "1" },
-              "THRESHLD_PCT": { "value": "60" },
+              "MODEL": { "value": "efficientdet_lite0.tflite" },
+              "MAX_OBJECTS": { "value": "3" },
+              "THRESHLD_PCT": { "value": "30" },
               "VIDEO_PATH": { "value": "0" },
               "FRAME_WIDTH": { "value": "640" },
               "FRAME_HEIGHT": { "value": "480" },
@@ -122,8 +102,6 @@
       "properties.desired": {
         "schemaVersion": "1.1",
         "routes": {
-          "DisplayIOToIoTHub": "FROM /messages/modules/display-io/outputs/* INTO $upstream",
-          "CameraCaptureToDisplayIO": "FROM /messages/modules/camera-capture/outputs/output1 INTO BrokeredEndpoint(\"/modules/display-io/inputs/input1\")"
         },
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200

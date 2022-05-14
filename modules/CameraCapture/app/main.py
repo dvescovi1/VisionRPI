@@ -71,7 +71,7 @@ def __IsInt(string):
         return False
 
 
-def runDetect(model: str, videoPath: str, width: int, height: int, num_threads: int,
+def runDetect(model: str, maxObjects: int, scoreThresholdPct: int, videoPath: str, width: int, height: int, num_threads: int,
         enable_edgetpu: bool, showVideo: bool, bypassIot: bool) -> None:
   """Continuously run inference on images acquired from the camera.
 
@@ -110,7 +110,7 @@ def runDetect(model: str, videoPath: str, width: int, height: int, num_threads: 
   base_options = core.BaseOptions(
       file_name=model, use_coral=enable_edgetpu, num_threads=num_threads)
   detection_options = processor.DetectionOptions(
-      max_results=3, score_threshold=0.3)
+      max_results=maxObjects, score_threshold=scoreThresholdPct/100.0)
   options = vision.ObjectDetectorOptions(
       base_options=base_options, detection_options=detection_options)
   detector = vision.ObjectDetector.create_from_options(options)
@@ -176,6 +176,8 @@ def runDetect(model: str, videoPath: str, width: int, height: int, num_threads: 
 def main(
     debugy = False,
     model = "",
+    maxObjects=3,
+    scoreThresholdPct=30,
     videoPath="0",
     frameWidth = 0,
     frameHeight = 0,
@@ -201,6 +203,8 @@ def main(
         print("Camera Capture Azure IoT Edge Module. Press Ctrl-C to exit.")
         print("Initialising the camera capture with the following parameters: ")
         print("   - Model file: " + model)
+        print("   - Max results: " + str(maxObjects))
+        print("   - Score threshold percent: " + str(scoreThresholdPct))
         print("   - Video path: " + videoPath)
         print("   - Frame width: " + str(frameWidth))
         print("   - Frame height: " + str(frameHeight))
@@ -219,7 +223,7 @@ def main(
             print("Unexpected error %s from IoTHub" % iothub_error)
             return
 
-        runDetect(model,videoPath,frameWidth, frameHeight, numThreads,enableEdgeTPU, showVideo, bypassIot)
+        runDetect(model,maxObjects,scoreThresholdPct,videoPath,frameWidth, frameHeight, numThreads,enableEdgeTPU, showVideo, bypassIot)
 
     except KeyboardInterrupt:
         print("Camera capture module stopped")
@@ -237,6 +241,8 @@ if __name__ == '__main__':
   try:
     DEBUGY = __convertStringToBool(os.getenv('DEBUG', 'False'))
     MODEL = os.getenv('MODEL', "efficientdet_lite0.tflite")
+    MAX_OBJECTS = int(os.getenv('MAX_OBJECTS', 3))
+    THRESHOLD_PCT = int(os.getenv('THRESHOLD_PCT', 30))
     VIDEO_PATH = os.getenv('VIDEO_PATH', "../test/AppleAndBanana.mp4")
 #    VIDEO_PATH = os.getenv('VIDEO_PATH', "0")
     FRAME_WIDTH = int(os.getenv('FRAME_WIDTH', 640))
@@ -251,5 +257,5 @@ if __name__ == '__main__':
     print(error)
     sys.exit(1)
 
-main(DEBUGY, MODEL, VIDEO_PATH, FRAME_WIDTH, FRAME_HEIGHT, NUM_THREADS, ENABLE_TPU,
+main(DEBUGY, MODEL, MAX_OBJECTS, THRESHOLD_PCT, VIDEO_PATH, FRAME_WIDTH, FRAME_HEIGHT, NUM_THREADS, ENABLE_TPU,
       SHOW_VIDEO, VERBOSE, BYPASS_IOT)
