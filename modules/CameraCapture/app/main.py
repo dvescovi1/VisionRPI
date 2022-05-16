@@ -57,6 +57,26 @@ def __IsInt(string):
         return False
 
 
+def IsInResult(tag, result):
+    if len(result) == 0:
+        return False
+    for i in result:
+        if (tag == i[0]):
+            return True
+    return False
+
+def telemeter(i, on):
+    telemeter_text = '{ "tagName": "' + i[0] + '", "probability": '
+    if on:
+        telemeter_text = telemeter_text + str(i[1]) + ', "state": True }'
+    else:
+        telemeter_text = telemeter_text + str(0.00) + ', "state": False }'
+    print(telemeter_text)
+
+    send_to_Hub_callback(telemeter_text)
+
+
+
 def runDetect(model: str, maxObjects: int, scoreThresholdPct: int, videoPath: str, width: int, height: int, num_threads: int,
         enable_edgetpu: bool, showVideo: bool, bypassIot: bool) -> None:
   """Continuously run inference on images acquired from the camera.
@@ -98,6 +118,8 @@ def runDetect(model: str, maxObjects: int, scoreThresholdPct: int, videoPath: st
       base_options=base_options, detection_options=detection_options)
   detector = vision.ObjectDetector.create_from_options(options)
 
+  previousResults = []
+
   # Continuously capture images from the camera and run inference
   while True:
     image = None
@@ -123,19 +145,38 @@ def runDetect(model: str, maxObjects: int, scoreThresholdPct: int, videoPath: st
     # Create a TensorImage object from the RGB image.
     input_tensor = vision.TensorImage.create_from_array(rgb_image)
 
+    
     # Run object detection estimation using the model.
     detection_result = detector.detect(input_tensor)
-    
-    for detection in detection_result.detections:
-      category = detection.classes[0]
-      class_name = category.class_name
-      probability = round(category.score, 2)
-      result_text = class_name + ' (' + str(probability) + ')'
-      print(result_text)
-      if (not bypassIot):
-          telemeter_text = '{' + '"' + 'probability' + '": ' + str(probability) + ', "tagName": "' + class_name + '"}'
-          send_to_Hub_callback(telemeter_text)
 
+    results = []
+
+    index = 0
+    for detection in detection_result.detections:
+        index = index +1
+        category = detection.classes[0]
+        class_name = category.class_name
+        probability = round(category.score, 2)
+        result_text = class_name + ' (' + str(probability) + ')'
+        results.append((class_name,probability))
+        results.sort()
+        print(result_text)
+
+    for i in results:
+        if (not IsInResult(i[0], previousResults)):
+            print('turn it on ' + i[0])
+            if not bypassIot:
+                telemeter(i, True)
+
+
+    for i in previousResults:
+        if (not IsInResult(i[0], results)):
+            print('turn it off ' + i[0])
+            if not bypassIot:
+                telemeter(i, False)
+
+    previousResults = results
+  
     cameraCapture.put_display_frame(image, detection_result)
 
     # Calculate the FPS
