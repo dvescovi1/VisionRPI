@@ -149,16 +149,14 @@ def runDetect(model: str, maxObjects: int, scoreThresholdPct: int, videoPath: st
 
     results = []
 
-    index = 0
     for detection in detection_result.detections:
-        index = index +1
         category = detection.classes[0]
         class_name = category.class_name
         probability = round(category.score, 2)
         result_text = class_name + ' (' + str(probability) + ')'
         results.append((class_name,probability))
         results.sort()
-        print(result_text)
+#        print(result_text)
 
     for i in results:
         if (not IsInResult(i[0], previousResults)):
@@ -185,7 +183,7 @@ def runDetect(model: str, maxObjects: int, scoreThresholdPct: int, videoPath: st
 
     # Show the FPS
     fps_text = 'FPS = {:.1f}'.format(fps)
-    print(fps_text)
+#    print(fps_text)
     print(counter)
 
 def main(

@@ -92,28 +92,10 @@ namespace DisplayIO
 
         public class RxMessage
         {
-            public class BoundingBox
-            {
-                public double height { get; set; }
-                public double left { get; set; }
-                public double top { get; set; }
-                public double width { get; set; }
-            }
-
-            public class Predictions
-            {
-                public BoundingBox boundingBox { get; set; }
-                public double probability { get; set; }
-                public int tagId { get; set; }
-                public string tagName { get; set; }
-            }
-
-            public DateTimeOffset created { get; set; }
-            public string id { get; set; }
-            public string iteration { get; set; }
-            public IList<Predictions> predictions { get; set; }
-            public string project { get; set; }
-
+//            public DateTimeOffset created { get; set; }
+            public string tagName { get; set; }
+            public double probability { get; set; }
+            public bool state {get; set; }
         }
 
 
@@ -145,8 +127,6 @@ namespace DisplayIO
         static async Task<MessageResponse> receiveMessage(Message message, object userContext)
         {
             int counterValue = Interlocked.Increment(ref counter);
-            bool Applehit = false;
-            bool Bananahit = false;
 
             var moduleClient = userContext as ModuleClient;
             if (moduleClient == null)
@@ -163,34 +143,22 @@ namespace DisplayIO
 
                 RxMessage rxMessage = JsonSerializer.Deserialize<RxMessage>(messageString);
 
-                foreach (var predicts in rxMessage.predictions)
+                if (0 == string.Compare(rxMessage.tagName, "apple"))
                 {
-                    if (0 == string.Compare(predicts.tagName, "apple"))
-                    {
-                        if (predicts.probability > threshold)
-                        {
-                            Applehit = true;
-                            string probabilityS = String.Format("{0:0.00}", predicts.probability);
-                            Console.WriteLine("tagID: " + predicts.tagName + " Probability: " + probabilityS);
-                        }
-                    }
-                    if (0 == string.Compare(predicts.tagName, "banana"))
-                    {
-                        if (predicts.probability > threshold)
-                        {
-                            Bananahit = true;
-                            string probabilityS = String.Format("{0:0.00}", predicts.probability);
-                            Console.WriteLine("tagID: " + predicts.tagName + " Probability: " + probabilityS);
-                        }
-                    }
+                    Led(rxMessage.state, GPIO_A);
+                    Console.WriteLine("tagID: " + rxMessage.tagName + \
+                        " Probability: " + rxMessage.probability.tostring() + \
+                        " Led: " + rxMessage.state.toString());
                 }
-
-                Led(Applehit, GPIO_A);
-                Led(Bananahit, GPIO_B);
-
-                if (Applehit || Bananahit || telemeterAll)
+                if (0 == string.Compare(rxMessage.tagName, "banana"))
                 {
-                    using (var pipeMessage = new Message(messageBytes))
+                    Led(rxMessage.state, GPIO_B);
+                    Console.WriteLine("tagID: " + rxMessage.tagName + \
+                        " Probability: " + rxMessage.probability.tostring() + \
+                        " Led: " + rxMessage.state.toString());
+                }
+/* 
+                     using (var pipeMessage = new Message(messageBytes))
                     {
                         foreach (var prop in message.Properties)
                         {
@@ -201,6 +169,7 @@ namespace DisplayIO
                         Console.WriteLine("Received message sent");
                     }
                 }
+*/
             }
             return MessageResponse.Completed;
         }

@@ -87,14 +87,14 @@
               "MODEL": { "value": "efficientdet_lite0.tflite" },
               "MAX_OBJECTS": { "value": "3" },
               "THRESHLD_PCT": { "value": "30" },
-              "VIDEO_PATH": { "value": "0" },
+              "VIDEO_PATH": { "value": "AppleAndBanana.mp4" },
               "FRAME_WIDTH": { "value": "640" },
               "FRAME_HEIGHT": { "value": "480" },
               "NUM_THREADS": { "value": "4" },
               "ENABLE_TPU": { "value": "False" },
               "SHOW_VIDEO": { "value": "True"},
               "VERBOSE": { "value": "True"},
-              "BYPASS_IOT": { "value": "True"}
+              "BYPASS_IOT": { "value": "False"}
             },
             "settings": {
               "image": "${MODULES.CameraCapture.debug}",
