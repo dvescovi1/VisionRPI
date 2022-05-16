@@ -75,8 +75,6 @@ def telemeter(i, on):
 
     send_to_Hub_callback(telemeter_text)
 
-
-
 def runDetect(model: str, maxObjects: int, scoreThresholdPct: int, videoPath: str, width: int, height: int, num_threads: int,
         enable_edgetpu: bool, showVideo: bool, bypassIot: bool) -> None:
   """Continuously run inference on images acquired from the camera.
