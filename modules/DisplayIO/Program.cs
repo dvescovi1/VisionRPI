@@ -25,9 +25,6 @@ namespace DisplayIO
         // Banana detector GPIO
         static int GPIO_B;
     
-        // detection threshold
-        static double threshold = 0.99;
-    
         // telemeter all message or only when detected (default - false)
         static bool telemeterAll = false;
 
@@ -37,9 +34,7 @@ namespace DisplayIO
         {
             GPIO_A = Convert.ToInt32(Environment.GetEnvironmentVariable("GPIO_A"));
             GPIO_B = Convert.ToInt32(Environment.GetEnvironmentVariable("GPIO_B"));
-            threshold = Convert.ToDouble(Environment.GetEnvironmentVariable("THRESHOLD"));
             telemeterAll = Convert.ToBoolean(Environment.GetEnvironmentVariable("TELEMETER_ALL"));
-            Console.WriteLine($"Threshold: {threshold}");
 
             if (Architecture.Arm64 == RuntimeInformation.ProcessArchitecture)
             {
@@ -163,15 +158,18 @@ namespace DisplayIO
                 {
                 }
             }
-            using (var pipeMessage = new Message(messageBytes))
+            if (telemeterAll)
             {
-                foreach (var prop in message.Properties)
+                using (var pipeMessage = new Message(messageBytes))
                 {
-                    pipeMessage.Properties.Add(prop.Key, prop.Value);
-                }
-                await moduleClient.SendEventAsync("output1", pipeMessage);
+                    foreach (var prop in message.Properties)
+                    {
+                        pipeMessage.Properties.Add(prop.Key, prop.Value);
+                    }
+                    await moduleClient.SendEventAsync("output1", pipeMessage);
 
-                Console.WriteLine("Received message sent");
+                    Console.WriteLine("Received message sent");
+                }
             }
             return MessageResponse.Completed;
         }

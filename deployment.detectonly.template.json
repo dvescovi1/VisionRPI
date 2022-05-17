@@ -66,7 +66,7 @@
               "DEBUG": { "value": "False" },
               "MODEL": { "value": "efficientdet_lite0.tflite" },
               "MAX_OBJECTS": { "value": "3" },
-              "THRESHLD_PCT": { "value": "30" },
+              "THRESHOLD_PCT": { "value": "30" },
               "VIDEO_PATH": { "value": "0" },
               "FRAME_WIDTH": { "value": "640" },
               "FRAME_HEIGHT": { "value": "480" },

@@ -65,8 +65,7 @@
             "env": {
               "GPIO_A": { "value": "20" },
               "GPIO_B": { "value": "21" },
-              "THRESHOLD": { "value": ".6" },
-              "TELEMETER_ALL": { "value": "false"}
+              "TELEMETER_ALL": { "value": "true"}
             },
             "settings": {
               "image": "${MODULES.DisplayIO}",
@@ -84,9 +83,9 @@
             "restartPolicy": "always",
             "env": {
               "DEBUG": { "value": "False" },
-              "MODEL": { "value": "0" },
+              "MODEL": { "value": "efficientdet_lite0.tflite" },
               "MAX_OBJECTS": { "value": "1" },
-              "THRESHLD_PCT": { "value": "60" },
+              "THRESHOLD_PCT": { "value": "60" },
               "VIDEO_PATH": { "value": "0" },
               "FRAME_WIDTH": { "value": "640" },
               "FRAME_HEIGHT": { "value": "480" },

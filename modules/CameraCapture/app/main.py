@@ -211,7 +211,7 @@ def main(
         print("Initialising the camera capture with the following parameters: ")
         print("   - Model file: " + model)
         print("   - Max results: " + str(maxObjects))
-        print("   - Score threshold percent: " + str(scoreThresholdPct))
+        print("   - Score threshold percent: " + str(scoreThresholdPct/100.1))
         print("   - Video path: " + videoPath)
         print("   - Frame width: " + str(frameWidth))
         print("   - Frame height: " + str(frameHeight))
