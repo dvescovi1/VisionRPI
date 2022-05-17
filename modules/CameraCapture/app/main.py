@@ -68,9 +68,9 @@ def IsInResult(tag, result):
 def telemeter(i, on):
     telemeter_text = '{ "tagName": "' + i[0] + '", "probability": '
     if on:
-        telemeter_text = telemeter_text + str(i[1]) + ', "state": True }'
+        telemeter_text = telemeter_text + str(i[1]) + ', "state": true }'
     else:
-        telemeter_text = telemeter_text + str(0.00) + ', "state": False }'
+        telemeter_text = telemeter_text + str(0.00) + ', "state": false }'
     print(telemeter_text)
 
     send_to_Hub_callback(telemeter_text)
@@ -184,7 +184,7 @@ def runDetect(model: str, maxObjects: int, scoreThresholdPct: int, videoPath: st
     # Show the FPS
     fps_text = 'FPS = {:.1f}'.format(fps)
 #    print(fps_text)
-    print(counter)
+#    print(counter)
 
 def main(
     debugy = False,

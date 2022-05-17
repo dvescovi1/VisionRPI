@@ -140,36 +140,38 @@ namespace DisplayIO
             
             if (!string.IsNullOrEmpty(messageString))
             {
-
-                RxMessage rxMessage = JsonSerializer.Deserialize<RxMessage>(messageString);
-
-                if (0 == string.Compare(rxMessage.tagName, "apple"))
+                try
                 {
-                    Led(rxMessage.state, GPIO_A);
-                    Console.WriteLine("tagID: " + rxMessage.tagName + 
-                        " Probability: " + rxMessage.probability.ToString() + 
-                        " Led: " + rxMessage.state.ToString());
-                }
-                if (0 == string.Compare(rxMessage.tagName, "banana"))
-                {
-                    Led(rxMessage.state, GPIO_B);
-                    Console.WriteLine("tagID: " + rxMessage.tagName + 
-                        " Probability: " + rxMessage.probability.ToString() + 
-                        " Led: " + rxMessage.state.ToString());
-                }
-/* 
-                     using (var pipeMessage = new Message(messageBytes))
+                    RxMessage rxMessage = JsonSerializer.Deserialize<RxMessage>(messageString);
+
+                    if (0 == string.Compare(rxMessage.tagName, "apple"))
                     {
-                        foreach (var prop in message.Properties)
-                        {
-                            pipeMessage.Properties.Add(prop.Key, prop.Value);
-                        }
-                        await moduleClient.SendEventAsync("output1", pipeMessage);
-
-                        Console.WriteLine("Received message sent");
+                        Led(rxMessage.state, GPIO_A);
+                        Console.WriteLine("tagID: " + rxMessage.tagName + 
+                            " Probability: " + rxMessage.probability.ToString() + 
+                            " Led: " + rxMessage.state.ToString());
+                    }
+                    if (0 == string.Compare(rxMessage.tagName, "banana"))
+                    {
+                        Led(rxMessage.state, GPIO_B);
+                        Console.WriteLine("tagID: " + rxMessage.tagName + 
+                            " Probability: " + rxMessage.probability.ToString() + 
+                            " Led: " + rxMessage.state.ToString());
                     }
                 }
-*/
+                catch (JsonException)
+                {
+                }
+            }
+            using (var pipeMessage = new Message(messageBytes))
+            {
+                foreach (var prop in message.Properties)
+                {
+                    pipeMessage.Properties.Add(prop.Key, prop.Value);
+                }
+                await moduleClient.SendEventAsync("output1", pipeMessage);
+
+                Console.WriteLine("Received message sent");
             }
             return MessageResponse.Completed;
         }
