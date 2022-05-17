@@ -93,8 +93,8 @@
               "NUM_THREADS": { "value": "4" },
               "ENABLE_TPU": { "value": "False" },
               "SHOW_VIDEO": { "value": "True"},
-              "VERBOSE": { "value": "True"},
-              "BYPASS_IOT": { "value": "True"}
+              "VERBOSE": { "value": "False"},
+              "BYPASS_IOT": { "value": "False"}
             },
             "settings": {
               "image": "${MODULES.CameraCapture}",
