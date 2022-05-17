@@ -146,16 +146,16 @@ namespace DisplayIO
                 if (0 == string.Compare(rxMessage.tagName, "apple"))
                 {
                     Led(rxMessage.state, GPIO_A);
-                    Console.WriteLine("tagID: " + rxMessage.tagName + \
-                        " Probability: " + rxMessage.probability.tostring() + \
-                        " Led: " + rxMessage.state.toString());
+                    Console.WriteLine("tagID: " + rxMessage.tagName + 
+                        " Probability: " + rxMessage.probability.ToString() + 
+                        " Led: " + rxMessage.state.ToString());
                 }
                 if (0 == string.Compare(rxMessage.tagName, "banana"))
                 {
                     Led(rxMessage.state, GPIO_B);
-                    Console.WriteLine("tagID: " + rxMessage.tagName + \
-                        " Probability: " + rxMessage.probability.tostring() + \
-                        " Led: " + rxMessage.state.toString());
+                    Console.WriteLine("tagID: " + rxMessage.tagName + 
+                        " Probability: " + rxMessage.probability.ToString() + 
+                        " Led: " + rxMessage.state.ToString());
                 }
 /* 
                      using (var pipeMessage = new Message(messageBytes))
