@@ -2,6 +2,37 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": ".NET Core Launch (console)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/bin/Debug/net6.0/DisplayIO.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "internalConsole"
+        },
+        {
+            "name": "Launch IoT Edge Module DisplayIO(.NET Core)",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${workspaceRoot}/bin/Debug/net6.0/DisplayIO.dll",
+            "args": [],
+            "cwd": "${workspaceRoot}",
+            "internalConsoleOptions": "openOnSessionStart",
+            "stopAtEntry": false,
+            "console": "internalConsole",
+            "env": {
+                "EdgeHubConnectionString": "${config:azure-iot-edge.EdgeHubConnectionString}",
+                "EdgeModuleCACertificateFile": "${config:azure-iot-edge.EdgeModuleCACertificateFile}",
+                "GPIO_A": "20",
+                "GPIO_B": "21",
+                "THRESHOLD": ".6",
+                "TELEMETER_ALL": "false"
+            }
+        },
+
+        {
             "name": "Remote Debug IoT Edge Module (.NET Core)",
             "type": "coreclr",
             "request": "attach",

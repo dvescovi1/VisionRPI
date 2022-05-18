@@ -12,7 +12,11 @@ apt-get -y install --no-install-recommends \
     # for video files
     libavcodec-dev libavformat-dev libswscale-dev libv4l-dev \
     # high def image processing
-    libilmbase-dev libopenexr-dev
+    libilmbase-dev libopenexr-dev \
+    # audio for tensorflow lite support
+    libportaudio2 libusb-1.0-0-dev \
+    # needed for camera
+    v4l-utils
 
 WORKDIR /app
 

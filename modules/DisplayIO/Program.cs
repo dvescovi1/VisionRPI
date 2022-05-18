@@ -25,9 +25,6 @@ namespace DisplayIO
         // Banana detector GPIO
         static int GPIO_B;
     
-        // detection threshold
-        static double threshold = 0.99;
-    
         // telemeter all message or only when detected (default - false)
         static bool telemeterAll = false;
 
@@ -37,9 +34,7 @@ namespace DisplayIO
         {
             GPIO_A = Convert.ToInt32(Environment.GetEnvironmentVariable("GPIO_A"));
             GPIO_B = Convert.ToInt32(Environment.GetEnvironmentVariable("GPIO_B"));
-            threshold = Convert.ToDouble(Environment.GetEnvironmentVariable("THRESHOLD"));
             telemeterAll = Convert.ToBoolean(Environment.GetEnvironmentVariable("TELEMETER_ALL"));
-            Console.WriteLine($"Threshold: {threshold}");
 
             if (Architecture.Arm64 == RuntimeInformation.ProcessArchitecture)
             {
@@ -92,28 +87,10 @@ namespace DisplayIO
 
         public class RxMessage
         {
-            public class BoundingBox
-            {
-                public double height { get; set; }
-                public double left { get; set; }
-                public double top { get; set; }
-                public double width { get; set; }
-            }
-
-            public class Predictions
-            {
-                public BoundingBox boundingBox { get; set; }
-                public double probability { get; set; }
-                public int tagId { get; set; }
-                public string tagName { get; set; }
-            }
-
-            public DateTimeOffset created { get; set; }
-            public string id { get; set; }
-            public string iteration { get; set; }
-            public IList<Predictions> predictions { get; set; }
-            public string project { get; set; }
-
+//            public DateTimeOffset created { get; set; }
+            public string tagName { get; set; }
+            public double probability { get; set; }
+            public bool state {get; set; }
         }
 
 
@@ -145,8 +122,6 @@ namespace DisplayIO
         static async Task<MessageResponse> receiveMessage(Message message, object userContext)
         {
             int counterValue = Interlocked.Increment(ref counter);
-            bool Applehit = false;
-            bool Bananahit = false;
 
             var moduleClient = userContext as ModuleClient;
             if (moduleClient == null)
@@ -160,46 +135,40 @@ namespace DisplayIO
             
             if (!string.IsNullOrEmpty(messageString))
             {
-
-                RxMessage rxMessage = JsonSerializer.Deserialize<RxMessage>(messageString);
-
-                foreach (var predicts in rxMessage.predictions)
+                try
                 {
-                    if (0 == string.Compare(predicts.tagName, "apple"))
+                    RxMessage rxMessage = JsonSerializer.Deserialize<RxMessage>(messageString);
+
+                    if (0 == string.Compare(rxMessage.tagName, "apple"))
                     {
-                        if (predicts.probability > threshold)
-                        {
-                            Applehit = true;
-                            string probabilityS = String.Format("{0:0.00}", predicts.probability);
-                            Console.WriteLine("tagID: " + predicts.tagName + " Probability: " + probabilityS);
-                        }
+                        Led(rxMessage.state, GPIO_A);
+                        Console.WriteLine("tagID: " + rxMessage.tagName + 
+                            " Probability: " + rxMessage.probability.ToString() + 
+                            " Led: " + rxMessage.state.ToString());
                     }
-                    if (0 == string.Compare(predicts.tagName, "banana"))
+                    if (0 == string.Compare(rxMessage.tagName, "banana"))
                     {
-                        if (predicts.probability > threshold)
-                        {
-                            Bananahit = true;
-                            string probabilityS = String.Format("{0:0.00}", predicts.probability);
-                            Console.WriteLine("tagID: " + predicts.tagName + " Probability: " + probabilityS);
-                        }
+                        Led(rxMessage.state, GPIO_B);
+                        Console.WriteLine("tagID: " + rxMessage.tagName + 
+                            " Probability: " + rxMessage.probability.ToString() + 
+                            " Led: " + rxMessage.state.ToString());
                     }
                 }
-
-                Led(Applehit, GPIO_A);
-                Led(Bananahit, GPIO_B);
-
-                if (Applehit || Bananahit || telemeterAll)
+                catch (JsonException)
                 {
-                    using (var pipeMessage = new Message(messageBytes))
+                }
+            }
+            if (telemeterAll)
+            {
+                using (var pipeMessage = new Message(messageBytes))
+                {
+                    foreach (var prop in message.Properties)
                     {
-                        foreach (var prop in message.Properties)
-                        {
-                            pipeMessage.Properties.Add(prop.Key, prop.Value);
-                        }
-                        await moduleClient.SendEventAsync("output1", pipeMessage);
-
-                        Console.WriteLine("Received message sent");
+                        pipeMessage.Properties.Add(prop.Key, prop.Value);
                     }
+                    await moduleClient.SendEventAsync("output1", pipeMessage);
+
+                    Console.WriteLine("Received message sent");
                 }
             }
             return MessageResponse.Completed;

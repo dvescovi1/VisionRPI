@@ -65,8 +65,7 @@
             "env": {
               "GPIO_A": { "value": "20" },
               "GPIO_B": { "value": "21" },
-              "THRESHOLD": { "value": ".6" },
-              "TELEMETER_ALL": { "value": "false"}
+              "TELEMETER_ALL": { "value": "true"}
             },
             "settings": {
               "image": "${MODULES.DisplayIO}",
@@ -83,13 +82,18 @@
             "status": "running",
             "restartPolicy": "always",
             "env": {
-              "VERBOSE": { "value": "False" },
+              "DEBUG": { "value": "False" },
               "MODEL": { "value": "efficientdet_lite0.tflite" },
-              "CAMERA_ID": { "value": "0" },
+              "MAX_OBJECTS": { "value": "1" },
+              "THRESHOLD_PCT": { "value": "60" },
+              "VIDEO_PATH": { "value": "0" },
               "FRAME_WIDTH": { "value": "640" },
               "FRAME_HEIGHT": { "value": "480" },
               "NUM_THREADS": { "value": "4" },
-              "ENABLE_EDGETPU": { "value": "False" }
+              "ENABLE_TPU": { "value": "False" },
+              "SHOW_VIDEO": { "value": "True"},
+              "VERBOSE": { "value": "False"},
+              "BYPASS_IOT": { "value": "False"}
             },
             "settings": {
               "image": "${MODULES.CameraCapture}",

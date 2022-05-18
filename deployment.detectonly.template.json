@@ -1,0 +1,112 @@
+{
+  "$schema-template": "2.0.0",
+  "modulesContent": {
+    "$edgeAgent": {
+      "properties.desired": {
+        "schemaVersion": "1.1",
+        "runtime": {
+          "type": "docker",
+          "settings": {
+            "minDockerVersion": "v1.25",
+            "loggingOptions": "",
+            "registryCredentials": {
+              "registryName": {
+                "username": "$CONTAINER_REGISTRY_USERNAME",
+                "password": "$CONTAINER_REGISTRY_PASSWORD",
+                "address": "$CONTAINER_REGISTRY_ADDRESS"
+              }
+            }
+          }
+        },
+        "systemModules": {
+          "edgeAgent": {
+            "type": "docker",
+            "settings": {
+              "image": "mcr.microsoft.com/azureiotedge-agent:1.2",
+              "createOptions": {}
+            }
+          },
+          "edgeHub": {
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "mcr.microsoft.com/azureiotedge-hub:1.2",
+              "createOptions": {
+                "HostConfig": {
+                  "PortBindings": {
+                    "5671/tcp": [
+                      {
+                        "HostPort": "5671"
+                      }
+                    ],
+                    "8883/tcp": [
+                      {
+                        "HostPort": "8883"
+                      }
+                    ],
+                    "443/tcp": [
+                      {
+                        "HostPort": "443"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "modules": {
+          "camera-capture": {
+            "version": "1.0.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "env": {
+              "DEBUG": { "value": "False" },
+              "MODEL": { "value": "efficientdet_lite0.tflite" },
+              "MAX_OBJECTS": { "value": "3" },
+              "THRESHOLD_PCT": { "value": "30" },
+              "VIDEO_PATH": { "value": "0" },
+              "FRAME_WIDTH": { "value": "640" },
+              "FRAME_HEIGHT": { "value": "480" },
+              "NUM_THREADS": { "value": "4" },
+              "ENABLE_TPU": { "value": "False" },
+              "SHOW_VIDEO": { "value": "True"},
+              "VERBOSE": { "value": "True"},
+              "BYPASS_IOT": { "value": "True"}
+            },
+            "settings": {
+              "image": "${MODULES.CameraCapture}",
+              "createOptions": {
+                "HostConfig": {
+                  "PortBindings": {
+                    "5012/tcp": [ { "HostPort": "5012" } ]
+                  },
+                  "Binds": [ "/dev/video0:/dev/video0" ],
+                  "Devices": [
+                    {
+                      "PathOnHost": "/dev/video0",
+                      "PathInContainer": "/dev/video0",
+                      "CgroupPermissions": "mrw"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "$edgeHub": {
+      "properties.desired": {
+        "schemaVersion": "1.1",
+        "routes": {
+        },
+        "storeAndForwardConfiguration": {
+          "timeToLiveSecs": 7200
+        }
+      }
+    }
+  }
+}

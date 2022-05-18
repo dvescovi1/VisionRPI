@@ -24,7 +24,7 @@ class ImageStreamHandler(tornado.websocket.WebSocketHandler):
     def on_message(self, msg):
         if msg == 'next':
             frame = self.camera.get_display_frame()
-            if frame != None:
+            if (frame):
                 encoded = base64.b64encode(frame)
                 self.write_message(encoded, binary=False)
 
