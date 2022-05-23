@@ -257,7 +257,7 @@ Capture a camera feed, send it to processing and forward outputs to EdgeHub
 if __name__ == '__main__':
   try:
     DEBUGY = __convertStringToBool(os.getenv('DEBUG', 'False'))
-    MODEL = os.getenv('MODEL', "efficientdet_lite0.tflite")
+    MODEL = os.getenv('MODEL', "model_metadata.tflite")
     MAX_OBJECTS = int(os.getenv('MAX_OBJECTS', 3))
     THRESHOLD_PCT = int(os.getenv('THRESHOLD_PCT', 30))
     VIDEO_PATH = os.getenv('VIDEO_PATH', "../test/AppleAndBanana.mp4")
