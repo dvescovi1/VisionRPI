@@ -1,11 +1,15 @@
 import os
 import sys
 import time
+from PIL import Image
 
 import cv2
 from tflite_support.task import core
 from tflite_support.task import processor
 from tflite_support.task import vision
+
+import predict
+from predict import TFLiteObjectDetection
 
 from azure.iot.device import IoTHubModuleClient, Message
 
@@ -17,6 +21,8 @@ from VideoStream import VideoStream
 
 # global counters
 SEND_CALLBACKS = 0
+MODEL_FILENAME = 'model.tflite'
+LABELS_FILENAME = 'labels.txt'
 
 def send_to_Hub_callback(strMessage):
     message = Message(bytearray(strMessage, 'utf8'))
@@ -107,17 +113,13 @@ def runDetect(model: str, maxObjects: int, scoreThresholdPct: int, videoPath: st
   # Visualization parameters
   fps_avg_frame_count = 10
 
-  # Initialize the object detection model
-  base_options = core.BaseOptions(
-      file_name=model, use_coral=enable_edgetpu, num_threads=num_threads)
-  detection_options = processor.DetectionOptions(
-      max_results=maxObjects, score_threshold=scoreThresholdPct/100.0)
-  options = vision.ObjectDetectorOptions(
-      base_options=base_options, detection_options=detection_options)
-  detector = vision.ObjectDetector.create_from_options(options)
-
   previousResults = []
 
+  # Load labels
+  with open(LABELS_FILENAME, 'r') as f:
+      labels = [l.strip() for l in f.readlines()]
+  od_model = TFLiteObjectDetection(MODEL_FILENAME, labels)
+  
   # Continuously capture images from the camera and run inference
   while True:
     image = None
@@ -135,6 +137,13 @@ def runDetect(model: str, maxObjects: int, scoreThresholdPct: int, videoPath: st
       )
     
     counter += 1
+#    image = Image.open("apple1.jpg")
+
+    predictions = od_model.predict_image(image)
+    print(predictions)
+
+
+
     image = cv2.flip(image, 1)
 
     # Convert the image from BGR to RGB as required by the TFLite model.
